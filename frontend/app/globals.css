@@ -1,0 +1,177 @@
+/* -----------------------------------------
+   Tailwind import
+-------------------------------------------- */
+@import "tailwindcss";
+
+/* -----------------------------------------
+   Smooth floating cloud animation
+-------------------------------------------- */
+
+
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-18px); }
+  100% { transform: translateY(0px); }
+}
+@keyframes floatCloud {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-15px); }
+  100% { transform: translateY(0px); }
+}
+
+.floatingCloud {
+  animation: float 5s ease-in-out infinite;
+  filter: drop-shadow(0 0 25px #00eaff);
+}
+
+/* -----------------------------------------
+   Typewriter animation
+-------------------------------------------- */
+.typing-title {
+  overflow: hidden;
+  white-space: nowrap;
+  width: 0;
+  border-right: 3px solid #00eaff;
+  animation: typing 3s steps(23) forwards, blink .8s infinite;
+}
+
+@keyframes typing {
+  from { width: 0; }
+  to { width: 19ch; }   /* 23 characters = full text */
+}
+
+
+@keyframes blink {
+  0%, 100% { border-color: transparent; }
+  50% { border-color: #00eaff; }
+}
+
+/* -----------------------------------------
+   Footer Icon Glow
+-------------------------------------------- */
+.footer-icon {
+  font-size: 32px;
+  color: #00eaff;
+  transition: 0.3s ease-in-out;
+  filter: drop-shadow(0 0 6px #00eaff);
+}
+
+.footer-icon:hover {
+  transform: scale(1.2);
+  color: white;
+  filter: drop-shadow(0 0 12px #ffffff);
+}
+
+
+@keyframes rotateCloud {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(3deg); }
+}
+ .cloud-mask {
+  clip-path: path("M60 120 Q20 120 20 80 Q20 40 60 40 Q70 10 110 10 Q150 10 160 40 Q200 40 200 80 Q200 120 160 120 Z");
+}
+
+.floatingCloud {
+  animation: float 5s ease-in-out infinite alternate;
+}
+
+@keyframes floatIcon {
+  0% { transform: translateY(0px); opacity: .7; }
+  50% { transform: translateY(-6px); opacity: 1; }
+  100% { transform: translateY(0px); opacity: .7; }
+}
+
+.cloud-icon {
+  position: absolute;
+  width: 26px;
+  animation: floatIcon 3s ease-in-out infinite;
+  filter: drop-shadow(0 0 6px #00eaff);
+}
+
+/* Crop cloud using mask-image */
+.cloudCrop {
+  -webkit-mask-image: url("/assets/cloud.png");
+  mask-image: url("/assets/cloud.png");
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+}
+
+
+/* PERFECT CLOUD MASK (fits your exact cloud outline shape) */
+.cloud-mask {
+  clip-path: path("M35 110 C10 70, 60 20, 120 40 C140 -10, 230 -5, 260 50 C310 40, 350 80, 330 120 C370 160, 330 210, 260 200 L80 200 C20 190, -5 150, 35 110 Z");
+}
+
+/* FLOATING + ROTATION */
+@keyframes floatCloud {
+  0% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-15px) rotate(1.4deg); }
+  100% { transform: translateY(0px) rotate(0deg); }
+}
+
+/* CLOUD IMAGE PROPER MASK */
+.cloud-mask {
+  clip-path: path(
+    "M40 140 C-10 110, 10 40, 70 50 C100 -20, 220 -10, 250 60 C330 40, 360 110, 310 150 C350 200, 310 250, 240 240 L90 240 C20 230, -10 180, 40 140 Z"
+  );
+}
+
+/* CLOUD IMAGE STYLING */
+.floatingCloud {
+  animation: floatCloud 4s ease-in-out infinite;
+  filter: drop-shadow(0 0 30px #00eaff) drop-shadow(0 0 60px #00ccff);
+  transition: 0.3s ease;
+}
+
+/* HOVER OUTLINE GLOW */
+.floatingCloud:hover {
+  filter: drop-shadow(0 0 45px #00eaff) drop-shadow(0 0 80px #00ccff);
+  transform: scale(1.05);
+}
+
+/* TYPEWRITER WIDTH FIX */
+.typing-title {
+  overflow: hidden;
+  white-space: nowrap;
+  width: 0;
+  border-right: 3px solid #00eaff;
+  animation: typing 3s steps(30) forwards, blink 0.8s infinite;
+}
+
+@keyframes typing {
+  from { width: 0; }
+  to { width: 850px; }
+}
+
+@keyframes blink {
+  50% { border-color: transparent; }
+}
+
+
+.hero-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background-image: url('/assets/bg-chip.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0.36;   /* ⬅️ Increased from 0.18 */
+  filter: blur(1px) brightness(0.85);
+  position: absolute;
+  opacity: 0.8;
+  z-index: 0;
+  pointer-events: none;
+}
+
+
+
+
+
+
