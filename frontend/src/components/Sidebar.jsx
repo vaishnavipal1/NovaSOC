@@ -5,6 +5,7 @@ import { HiOutlineDocumentText } from "react-icons/hi";
 import { MdOutlineSecurity } from "react-icons/md";
 import { FiLogOut } from "react-icons/fi";
 import { HiOutlineMenuAlt3 } from "react-icons/hi";
+import { FiUsers } from "react-icons/fi";   // 👈 NEW
 
 const Sidebar = () => {
   const [open, setOpen] = useState(false);
@@ -21,6 +22,8 @@ const Sidebar = () => {
     { name: "Dashboard", path: "/dashboard", icon: <RxDashboard size={20} /> },
     { name: "Logs", path: "/logs", icon: <HiOutlineDocumentText size={20} /> },
     { name: "Incidents", path: "/incidents", icon: <MdOutlineSecurity size={20} /> },
+    // 👇 NEW ADMIN ITEM
+    { name: "Admin", path: "/admin", icon: <FiUsers size={20} /> },
   ];
 
   return (
@@ -64,23 +67,23 @@ const Sidebar = () => {
           ))}
         </ul>
 
-
-  <ul className="space-y-5" >
-<li>
-  <Link to="/threat-map" className="flex gap-3 hover:text-cyan-400">
-    🌍 Threat Map
-  </Link>
-</li>
-</ul>
-
-  
-
-
-
-
-
-
-
+        {/* Threat Map (kept as you had it) */}
+        <ul className="space-y-5 mt-6">
+          <li>
+            <Link
+              to="/threat-map"
+              className={`flex gap-3 text-md font-medium transition-all
+              ${
+                location.pathname === "/threat-map"
+                  ? "text-cyan-400 translate-x-1"
+                  : "text-gray-300 hover:text-cyan-300"
+              }`}
+              onClick={() => setOpen(false)}
+            >
+              🌍 Threat Map
+            </Link>
+          </li>
+        </ul>
 
         {/* Logout */}
         <button
@@ -97,4 +100,3 @@ const Sidebar = () => {
 };
 
 export default Sidebar;
-

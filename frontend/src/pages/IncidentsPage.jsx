@@ -1,4 +1,4 @@
-import Sidebar from "../components/Sidebar";
+// src/pages/IncidentsPage.jsx
 
 const incidents = [
   {
@@ -19,47 +19,52 @@ const incidents = [
   },
 ];
 
+const statusColors = {
+  Open: "text-red-400 font-semibold",
+  Investigating: "text-yellow-300 font-semibold",
+  Resolved: "text-green-400 font-semibold",
+};
+
 export default function Incidents() {
   return (
-    <div className="flex bg-[#000814] min-h-screen text-white">
-      <Sidebar />
+    <div className="bg-[#000814] min-h-screen text-white p-6 md:p-8">
+      <h1 className="text-2xl md:text-3xl font-bold text-cyan-400 mb-6">
+        🛡 Incident Response
+      </h1>
 
-      <div className="flex-1 md:ml-64 p-6 transition-all duration-300">
-        <h1 className="text-2xl md:text-3xl font-bold text-cyan-400 mb-6">
-          🛡 Incident Response
-        </h1>
+      <div className="overflow-x-auto rounded-lg shadow-lg">
+        <table className="w-full bg-[#0A1320] border border-cyan-500/20 text-sm md:text-base">
+          <thead className="bg-[#0C1C2E] text-cyan-300">
+            <tr>
+              <th className="p-3">ID</th>
+              <th className="p-3">Type</th>
+              <th className="p-3">Status</th>
+              <th className="p-3">Analyst</th>
+              <th className="p-3">Created</th>
+              <th className="p-3">Rule Triggered</th>
+            </tr>
+          </thead>
 
-        <div className="overflow-x-auto rounded-lg shadow-lg">
-          <table className="w-full bg-[#0A1320] border border-cyan-500/20 text-sm md:text-base">
-            <thead className="bg-[#0C1C2E] text-cyan-300">
-              <tr>
-                <th className="p-3">ID</th>
-                <th className="p-3">Type</th>
-                <th className="p-3">Status</th>
-                <th className="p-3">Analyst</th>
-                <th className="p-3">Created</th>
-                <th className="p-3">Rule Triggered</th>
+          <tbody>
+            {incidents.map((i) => (
+              <tr
+                key={i.id}
+                className="border-b border-cyan-500/10 hover:bg-[#112233] transition"
+              >
+                <td className="p-3">{i.id}</td>
+                <td className="p-3">{i.type}</td>
+
+                <td className={`p-3 ${statusColors[i.status]}`}>
+                  {i.status}
+                </td>
+
+                <td className="p-3">{i.analyst}</td>
+                <td className="p-3">{i.createdAt}</td>
+                <td className="p-3">{i.rule}</td>
               </tr>
-            </thead>
-
-            <tbody>
-              {incidents.map((i) => (
-                <tr
-                  key={i.id}
-                  className="border-b border-cyan-500/10 hover:bg-[#112233] transition"
-                >
-                  <td className="p-3">{i.id}</td>
-                  <td className="p-3">{i.type}</td>
-                  <td className="p-3">{i.status}</td>
-                  <td className="p-3">{i.analyst}</td>
-                  <td className="p-3">{i.createdAt}</td>
-                  <td className="p-3">{i.rule}</td>
-                </tr>
-              ))}
-            </tbody>
-
-          </table>
-        </div>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );
