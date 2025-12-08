@@ -19,25 +19,33 @@ export interface ILog extends Document {
   updatedAt?: Date;
 }
 
-const LogSchema = new Schema<ILog>(
-  {
-    timestamp: { type: Date, default: Date.now },
-    src_ip: { type: String, required: true },
+const LogSchema = new mongoose.Schema({
+  timestamp: { type: Date, default: Date.now },
 
-    // your fields
-    username: { type: String },
-    payload: { type: String },
-    event_type: { type: String },
-    category: { type: String },
-    severity: { type: String },
-    failed_logins: { type: Number },
-    bytes_sent: { type: Number },
-    scan_ports: { type: Number },
+  src_ip: String,
+  username: String,
 
-    threat_score: { type: Number, default: 10 },
-    attack_type: { type: String, default: "low-risk" }
-  },
-  { timestamps: true }
-);
+  event_type: String,
+  payload: String,
+  category: String,
+  severity: String,
+  attack_type: String,
+
+  failed_logins: Number,
+  bytes_sent: Number,
+  scan_ports: Number,
+  threat_score: Number,
+
+  // ML-related fields
+  packets: Number,
+  connections_per_min: Number,
+
+  vpn_probability: { type: Number, default: 0 },
+  ml_predicted_attack: { type: String, default: null },
+
+  is_vpn: { type: Boolean, default: false },
+  is_ddos: { type: Boolean, default: false },
+
+}, { timestamps: true });
 
 export default mongoose.model<ILog>("Log", LogSchema);

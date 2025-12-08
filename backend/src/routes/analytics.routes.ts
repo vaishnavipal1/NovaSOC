@@ -1,6 +1,7 @@
 import { Router } from "express";
 import Log from "../models/Log.ts";
 import Incident from "../models/Incident.ts";
+import BlockedIP from "../models/BlockedIP.ts";
 
 const router = Router();
 
@@ -8,14 +9,19 @@ const router = Router();
 router.get("/summary", async (req, res) => {
   try {
     const active = await Log.countDocuments();
-    const open = await Incident.countDocuments({ status: "open" });
-    const blocked = await Incident.countDocuments({ severity: "High" });
+    const open = await Incident.countDocuments({ status: "Open" });
+    const blocked = await BlockedIP.countDocuments(); // ⭐ NEW
+    const resolved = await Incident.countDocuments({ status: "Resolved" }); // OPTIONAL
 
-    return res.json({ stats: { active, open, blocked } });
+    return res.json({
+      stats: { active, open, blocked, resolved }
+    });
   } catch (e) {
-    return res.status(500).json({ error: "Summary fetch failed" });
+    res.status(500).json({ error: "Summary fetch failed" });
   }
 });
+
+
 
 router.get("/trend-multi", async (req, res) => {
   try {
