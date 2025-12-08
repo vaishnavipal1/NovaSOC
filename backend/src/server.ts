@@ -9,6 +9,7 @@ import incidentsRoutes from "./routes/incidents.routes";
 import logsRoutes from "./routes/logs.routes";
 import { generateRandomLog } from "./services/autoGenerator.service";
 import analyticsRoutes from "./routes/analytics.routes";
+import blocklistRoutes from "./routes/blocklist.routes";
 
 dotenv.config();
 
@@ -20,6 +21,8 @@ app.use("/api/ingest", ingestRoutes);
 app.use("/api/incidents", incidentsRoutes);
 app.use("/api/logs", logsRoutes);
 app.use("/api/analytics", analyticsRoutes);
+app.use("/api/blocklist", blocklistRoutes);
+
 
 
 

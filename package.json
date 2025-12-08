@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "ip-address": "^10.1.0",
+    "ip-cidr": "^4.0.2",
+    "ipaddr.js": "^2.3.0"
+  }
+}

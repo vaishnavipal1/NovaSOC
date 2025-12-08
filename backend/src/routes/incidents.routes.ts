@@ -7,24 +7,40 @@ import { getIo } from "../sockets/socket";
 const router = Router();
 
 /* 1️⃣ GET incidents (with limit support) */
+import BlockedIP from "../models/BlockedIP";
+
 router.get("/", async (req, res) => {
   try {
-    const limit = parseInt(req.query.limit as string) || 10;
+    // 🔹 Fetch as plain objects (no Mongoose docs)
+    let incidents = await Incident.find()
+      .populate("log")
+      .sort({ createdAt: -1 })
+      .lean();
 
-   const incidents = await Incident.find()
-  .populate("log")     // <– FIX: pulls full Log including src_ip, username, etc
-  .sort({ createdAt: -1 })
-  .lean();
+    // 🔹 Get blocked IPs
+    const blocked = await BlockedIP.find().lean();
+    const blockedSet = new Set(blocked.map((b) => b.ip));
 
-    res.json({
-      success: true,
-      incidents
+    // 🔹 Attach isBlocked flag safely
+    incidents = incidents.map((i: any) => {
+      const ip =
+        i.log && typeof i.log === "object" && "src_ip" in i.log
+          ? i.log.src_ip
+          : null;
+
+      return {
+        ...i,
+        isBlocked: ip ? blockedSet.has(ip) : false,
+      };
     });
+
+    res.json({ success: true, incidents });
   } catch (err: any) {
-    console.error("GET /api/incidents error:", err);
+    console.error("❌ Error fetching incidents:", err);
     res.status(500).json({ success: false, error: err.message });
   }
 });
+
 
 /* 2️⃣ UPDATE incident (status or analyst) */
 router.patch("/:id", async (req, res) => {

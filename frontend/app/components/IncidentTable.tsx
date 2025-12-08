@@ -15,54 +15,72 @@ export default function IncidentTable() {
   });
   const [selected, setSelected] = useState<any | null>(null);
 
+  // Extract rule names
   const rulesList = useMemo(
-    () =>
-      Array.from(
-        new Set(incidents.map((i) => i.rule?.name).filter(Boolean))
-      ),
+    () => Array.from(new Set(incidents.map(i => i.rule?.name).filter(Boolean))),
     [incidents]
   );
 
-  /** Fetch all incidents on load */
+  // Load incidents on startup
   useEffect(() => {
-    fetch("http://localhost:4000/api/incidents")
-      .then((r) => r.json())
-      .then((d) => setIncidents(d.incidents || []))
-      .catch(() => setIncidents([]));
+    async function load() {
+      const res = await fetch("http://localhost:4000/api/incidents");
+      const data = await res.json();
+      setIncidents(data.incidents || []);
+    }
+    load();
   }, []);
 
-  /** Websocket listeners */
+  // Websocket listeners
   useEffect(() => {
-    socket.on("new_incident", (inc: any) =>
-      setIncidents((prev) => [inc, ...prev])
+    socket.on("new_incident", (inc: any) => {
+      setIncidents(prev => [inc, ...prev]);
+    });
+
+    socket.on("incident_updated", (updated: any) =>
+      setIncidents(prev =>
+        prev.map(i => (i._id === updated._id ? updated : i))
+      )
     );
 
-    socket.on("incident_updated", (inc: any) =>
-      setIncidents((prev) =>
-        prev.map((p) => (p._id === inc._id ? inc : p))
+    socket.on("ip_blocked", (record: any) =>
+      setIncidents(prev =>
+        prev.map(i =>
+          i.log?.src_ip === record.ip ? { ...i, isBlocked: true } : i
+        )
+      )
+    );
+
+    socket.on("ip_unblocked", ({ ip }) =>
+      setIncidents(prev =>
+        prev.map(i =>
+          i.log?.src_ip === ip ? { ...i, isBlocked: false } : i
+        )
       )
     );
 
     return () => {
       socket.off("new_incident");
       socket.off("incident_updated");
+      socket.off("ip_blocked");
+      socket.off("ip_unblocked");
     };
   }, []);
 
-  /** Filtering logic */
-  const filtered = incidents.filter((inc) => {
+  // Filtering logic
+  const filtered = incidents.filter(inc => {
     if (filters.severity && inc.severity !== filters.severity) return false;
     if (filters.rule && inc.rule?.name !== filters.rule) return false;
 
     if (filters.search) {
       const s = filters.search.toLowerCase();
-      const hay = JSON.stringify(inc).toLowerCase();
-      if (!hay.includes(s)) return false;
+      const haystack = JSON.stringify(inc).toLowerCase();
+      if (!haystack.includes(s)) return false;
     }
     return true;
   });
 
-  /** Update status from dropdown */
+  // Change incident status
   async function updateStatus(id: string, newStatus: string) {
     const res = await fetch(`http://localhost:4000/api/incidents/${id}`, {
       method: "PATCH",
@@ -72,13 +90,13 @@ export default function IncidentTable() {
 
     const data = await res.json();
     if (data.success) {
-      setIncidents((prev) =>
-        prev.map((i) => (i._id === id ? data.incident : i))
+      setIncidents(prev =>
+        prev.map(i => (i._id === id ? data.incident : i))
       );
     }
   }
 
-  /** Save updates from modal */
+  // Save updates from modal
   async function saveIncidentUpdates(updates: any) {
     if (!selected) return;
 
@@ -90,11 +108,38 @@ export default function IncidentTable() {
         body: JSON.stringify(updates),
       }
     );
-
     const data = await res.json();
-    if (data.success) {
-      setSelected(data.incident);
+    if (data.success) setSelected(data.incident);
+  }
+
+  // Block / Unblock
+  async function toggleBlock(ip: string, isBlocked: boolean) {
+    if (!ip) return;
+
+    if (!isBlocked) {
+      alert("⚠ Only auto-block is allowed. Analyst cannot manually block.");
+      return;
     }
+
+    // Unblock
+    const res = await fetch(
+      `http://localhost:4000/api/blocklist/unblock/${ip}`,
+      { method: "POST" }
+    );
+    const data = await res.json();
+
+    if (data.success) {
+      setIncidents(prev =>
+        prev.map(i =>
+          i.log?.src_ip === ip ? { ...i, isBlocked: false } : i
+        )
+      );
+    }
+  }
+
+  // Convert VPN score to Yes/No
+  function vpnStatus(score: number) {
+    return score >= 60 ? "Yes" : "No";
   }
 
   return (
@@ -109,10 +154,15 @@ export default function IncidentTable() {
         <thead>
           <tr className="text-cyan-400 border-b border-gray-700">
             <th className="py-2">ID</th>
-            <th>Attack Type</th>
+            <th>Attack</th>
             <th>Severity</th>
             <th>Source IP</th>
+
+            {/* ⭐ NEW COLUMN: VPN STATUS */}
+            <th>VPN</th>
+
             <th>Status</th>
+            <th>Block</th>
             <th>Target</th>
             <th>Rule</th>
             <th>Date</th>
@@ -127,11 +177,8 @@ export default function IncidentTable() {
             >
               <td className="py-3">{idx + 1}</td>
 
-              <td
-                className="cursor-pointer"
-                onClick={() => setSelected(inc)}
-              >
-                {inc.attack || inc.rule?.name || "Unknown"}
+              <td onClick={() => setSelected(inc)} className="cursor-pointer">
+                {inc.attack || inc.rule?.name}
               </td>
 
               <td>
@@ -139,6 +186,11 @@ export default function IncidentTable() {
               </td>
 
               <td>{inc.log?.src_ip || "-"}</td>
+
+              {/* ⭐ VPN Yes/No */}
+              <td className="font-semibold">
+                {vpnStatus(inc.vpn_score)}
+              </td>
 
               {/* Status Dropdown */}
               <td>
@@ -153,9 +205,20 @@ export default function IncidentTable() {
                 </select>
               </td>
 
-              <td>{inc.target || "-"}</td>
+              {/* Block / Unblock */}
+              <td>
+                <button
+                  className={`px-3 py-1 rounded text-xs ${
+                    inc.isBlocked ? "bg-red-600" : "bg-green-700"
+                  }`}
+                  onClick={() => toggleBlock(inc.log?.src_ip, inc.isBlocked)}
+                >
+                  {inc.isBlocked ? "Unblock" : "Blocked?"}
+                </button>
+              </td>
 
-              <td>{inc.rule?.name || "-"}</td>
+              <td>{inc.target}</td>
+              <td>{inc.rule?.name}</td>
 
               <td>{new Date(inc.createdAt).toLocaleString()}</td>
             </tr>
@@ -163,7 +226,6 @@ export default function IncidentTable() {
         </tbody>
       </table>
 
-      {/* Modal */}
       <IncidentModal
         incident={selected}
         onClose={() => setSelected(null)}

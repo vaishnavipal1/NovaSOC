@@ -23,7 +23,14 @@ export default function DashboardPage() {
   useEffect(() => {
     async function load() {
       try {
-        const [summary, line, sev, radar, trend, top] = await Promise.all([
+        const [
+          summary,
+          line,
+          sev,
+          radar,
+          trend,
+          top
+        ] = await Promise.all([
           fetch("http://localhost:4000/api/analytics/summary").then(r => r.json()),
           fetch("http://localhost:4000/api/analytics/time-series").then(r => r.json()),
           fetch("http://localhost:4000/api/analytics/severity").then(r => r.json()),
@@ -37,7 +44,7 @@ export default function DashboardPage() {
         setSeverityData(sev.data);
         setRadarData(radar.data);
         setMultiTrend(trend.data);
-        setTopIPs(top.data);  // IMPORTANT
+        setTopIPs(top.data); // LIST OF ATTACKERS IPs
       } catch (error) {
         console.error("Dashboard load failed:", error);
       }
@@ -70,7 +77,7 @@ export default function DashboardPage() {
         </div>
 
         <div className="space-y-6">
-          <TopIPs ips={topIPs} />   {/* FIXED */}
+          <TopIPs ips={topIPs} />
         </div>
       </div>
     </DashboardShell>
