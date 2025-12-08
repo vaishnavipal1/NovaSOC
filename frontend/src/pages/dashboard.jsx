@@ -1,5 +1,6 @@
 // src/pages/dashboard.jsx
 
+import { useState, useEffect } from "react";
 import { Line, Doughnut, Radar } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -25,9 +26,45 @@ ChartJS.register(
 );
 
 export default function Dashboard() {
-  const alerts = 14;
-  const openIncidents = 3;
-  const blockedThreats = 62;
+  const [stats, setStats] = useState({
+    alerts: 0,
+    openIncidents: 0,
+    blockedThreats: 0,
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await fetch(
+          "http://localhost:4000/api/analytics/summary",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        if (response.ok) {
+          const data = await response.json();
+          setStats({
+            alerts: data.stats?.active || 0,
+            openIncidents: data.stats?.open || 0,
+            blockedThreats: data.stats?.blocked || 0,
+          });
+        }
+      } catch (err) {
+        console.error("Error fetching stats:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchStats();
+  }, []);
+
+  const alerts = stats.alerts;
+  const openIncidents = stats.openIncidents;
+  const blockedThreats = stats.blockedThreats;
 
   const lineData = {
     labels: ["10 AM", "11 AM", "12 PM", "1 PM", "2 PM", "3 PM"],

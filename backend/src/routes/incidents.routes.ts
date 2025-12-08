@@ -1,8 +1,8 @@
 // backend/src/routes/incidents.routes.ts
 
 import { Router } from "express";
-import Incident from "../models/Incident";
-import { getIo } from "../sockets/socket";
+import Incident from "../models/Incident.ts";
+import { getIo } from "../sockets/socket.ts";
 
 const router = Router();
 

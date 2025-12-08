@@ -1,6 +1,16 @@
-import mongoose from "mongoose";
+import mongoose, { Document, Schema } from "mongoose";
 
-const analystSchema = new mongoose.Schema(
+interface IAnalyst extends Document {
+  name: string;
+  email: string;
+  password: string;
+  location: string;
+  role: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const analystSchema = new Schema<IAnalyst>(
   {
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
@@ -12,4 +22,4 @@ const analystSchema = new mongoose.Schema(
 );
 
 export default mongoose.models.Analyst ||
-  mongoose.model("Analyst", analystSchema);
+  mongoose.model<IAnalyst>("Analyst", analystSchema);

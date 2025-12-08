@@ -1,6 +1,6 @@
 import { Router } from "express";
-import Log from "../models/Log";
-import Incident from "../models/Incident";
+import Log from "../models/Log.ts";
+import Incident from "../models/Incident.ts";
 
 const router = Router();
 
