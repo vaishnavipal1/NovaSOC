@@ -1,7 +1,6 @@
 {
   "name": "novasoc-backend",
   "version": "1.0.0",
-  "type": "module",
   "main": "dist/index.js",
 
   "scripts": {
@@ -34,4 +33,5 @@
     "typescript": "^5.0.0"
   }
 }
+
 
