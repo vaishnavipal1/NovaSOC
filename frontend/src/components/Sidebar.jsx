@@ -5,6 +5,9 @@ import { HiOutlineDocumentText } from "react-icons/hi";
 import { MdOutlineSecurity } from "react-icons/md";
 import { FiLogOut } from "react-icons/fi";
 import { HiOutlineMenuAlt3 } from "react-icons/hi";
+import ThreatMapPage from "../pages/ThreatMapPage";
+
+
 
 const Sidebar = () => {
   const [open, setOpen] = useState(false);
@@ -65,13 +68,21 @@ const Sidebar = () => {
         </ul>
 
 
-  <ul className="space-y-5" >
+ 
+
+<ul className="space-y-5" >
 <li>
-  <Link to="/threat-map" className="flex gap-3 hover:text-cyan-400">
-    🌍 Threat Map
-  </Link>
+  <Link
+  to="/threat-map"
+  className="flex gap-3 hover:text-cyan-400"
+  onClick={() => setOpen(false)}
+>
+  🌍 Threat Map
+</Link>
+
 </li>
 </ul>
+
 
   
 

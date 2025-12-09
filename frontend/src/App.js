@@ -7,8 +7,6 @@ import Dashboard from "./pages/dashboard";
 import Incidents from "./pages/IncidentsPage";
 import ThreatMapPage from "./pages/ThreatMapPage";
 
-
-
 function App() {
   return (
     <BrowserRouter>
@@ -17,10 +15,11 @@ function App() {
         <Route path="/logs" element={<LogsPage />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/incidents" element={<Incidents />} />
-        <Route path="/threat-map" element={<ThreatMapPage />} />
+        <Route path="/threat-map" element={<ThreatMapPage />} /> {/* ✔ Only one route */}
       </Routes>
     </BrowserRouter>
   );
 }
 
 export default App;
+

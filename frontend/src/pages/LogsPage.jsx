@@ -1,56 +1,43 @@
 // src/pages/LogsPage.jsx
+import { useEffect, useState } from "react";
 import Sidebar from "../components/Sidebar";
 
-const logs = [
-  {
-    id: 1,
-    timestamp: "2025-12-04 14:25:16",
-    source: "Firewall",
-    category: "Port Scan",
-    sourceIP: "103.22.44.19",
-    target: "Web Server",
-    message: "Blocked unauthorized access attempt",
-    severity: "High",
-    action: "Blocked",
-  },
-  {
-    id: 2,
-    timestamp: "2025-12-04 13:11:42",
-    source: "System",
-    category: "Malware Scan",
-    sourceIP: "-",
-    target: "System Core",
-    message: "Scheduled scan completed",
-    severity: "Low",
-    action: "Completed",
-  },
-  {
-    id: 3,
-    timestamp: "2025-12-04 12:50:30",
-    source: "Auth Service",
-    category: "Brute Force",
-    sourceIP: "45.66.90.12",
-    target: "Login API",
-    message: "Multiple failed login attempts",
-    severity: "Medium",
-    action: "Alert Generated",
-  },
-];
-
 const severityColor = {
-  High: "text-red-400 font-bold",
-  Medium: "text-yellow-300 font-bold",
-  Low: "text-green-400 font-bold",
+  High: "bg-red-600/30 text-red-300 px-2 py-1 rounded-md font-semibold",
+  Medium: "bg-yellow-600/30 text-yellow-300 px-2 py-1 rounded-md font-semibold",
+  Low: "bg-green-600/30 text-green-300 px-2 py-1 rounded-md font-semibold",
+  Unknown: "bg-gray-600/30 text-gray-300 px-2 py-1 rounded-md font-semibold",
+};
+
+const attackColor = {
+  "Web Attacks": "text-cyan-300",
+  "DoS & DDoS": "text-red-400",
+  "Reconnaissance": "text-yellow-300",
+  "Malware & Exploits": "text-purple-400",
+  "Credential Attacks": "text-orange-300",
+  Other: "text-gray-300",
 };
 
 export default function LogsPage() {
+  const [logs, setLogs] = useState([]);
+
+  useEffect(() => {
+    fetch("http://localhost:5000/api/logs")
+      .then((res) => res.json())
+      .then((data) => {
+        console.log("📥 Logs Received:", data);
+        setLogs(data);
+      })
+      .catch((err) => console.error("Error fetching logs:", err));
+  }, []);
+
   return (
     <div className="flex bg-[#000814] min-h-screen text-white">
       <Sidebar />
 
       <div className="flex-1 md:ml-64 p-6 transition-all duration-300">
         <h1 className="text-2xl md:text-3xl font-bold text-cyan-400 mb-6">
-          🔍 Log Monitoring
+          🔍 AI-Powered Log Monitoring
         </h1>
 
         <div className="overflow-x-auto rounded-lg shadow-lg">
@@ -58,41 +45,45 @@ export default function LogsPage() {
             <thead className="bg-[#0C1C2E] text-cyan-300">
               <tr>
                 <th className="p-3">Timestamp</th>
-                <th className="p-3">Source</th>
-                <th className="p-3">Category</th>
                 <th className="p-3">Source IP</th>
-                <th className="p-3">Target</th>
-                <th className="p-3">Message</th>
-                <th className="p-3">Action</th>
+                <th className="p-3">Attack Type</th>
                 <th className="p-3">Severity</th>
+                <th className="p-3">Message</th>
               </tr>
             </thead>
 
             <tbody>
-              {logs.map((log) => (
-                <tr
-                  key={log.id}
-                  className="border-b border-cyan-500/10 hover:bg-[#112233] transition"
-                >
-                  <td className="p-3">{log.timestamp}</td>
-                  <td className="p-3">{log.source}</td>
-                  <td className="p-3">{log.category}</td>
-                  <td className="p-3">{log.sourceIP}</td>
-                  <td className="p-3">{log.target}</td>
-                  <td className="p-3">{log.message}</td>
-                  <td className="p-3">{log.action}</td>
-                  <td className={`p-3 ${severityColor[log.severity]}`}>
-                    {log.severity}
+              {logs.length === 0 ? (
+                <tr>
+                  <td colSpan="5" className="text-center p-5 text-gray-400">
+                    🚫 No logs available — Generate logs or ingest data
                   </td>
                 </tr>
-              ))}
-            </tbody>
+              ) : (
+                logs.map((log) => (
+                  <tr key={log._id} className="border-b border-cyan-500/10 hover:bg-[#112233] transition">
+                    <td className="p-3">{log.timestamp || "N/A"}</td>
+                    <td className="p-3">{log.source_ip || "N/A"}</td>
 
+                    <td className={`p-3 font-semibold ${attackColor[log.attack_type] || "text-gray-300"}`}>
+                      {log.attack_type || "Unknown"}
+                    </td>
+
+                    <td className="p-3">
+                      <span className={severityColor[log.severity] || severityColor["Unknown"]}>
+                        {log.severity || "Unknown"}
+                      </span>
+                    </td>
+
+                    <td className="p-3">{log.message || "-"}</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
           </table>
         </div>
       </div>
     </div>
   );
 }
-
 
