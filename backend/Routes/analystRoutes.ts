@@ -17,20 +17,16 @@ interface CreateAnalystRequest {
 }
 
 // GET /api/analysts  (protected, all authenticated users can view)
-router.get(
-  "/",
-  protect,
-  async (req: Request, res: Response): Promise<void> => {
-    try {
-      const analysts = await Analyst.find().sort({ createdAt: -1 });
-      res.json(analysts);
-    } catch (err) {
-      const errMsg = err instanceof Error ? err.message : "Server error";
-      console.error("GET /api/analysts error:", err);
-      res.status(500).json({ message: errMsg });
-    }
+router.get("/", protect, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const analysts = await Analyst.find().sort({ createdAt: -1 });
+    res.json(analysts);
+  } catch (err) {
+    const errMsg = err instanceof Error ? err.message : "Server error";
+    console.error("GET /api/analysts error:", err);
+    res.status(500).json({ message: errMsg });
   }
-);
+});
 
 // POST /api/analysts  (protected, admin only)
 router.post(

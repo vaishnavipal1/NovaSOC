@@ -19,33 +19,36 @@ export interface ILog extends Document {
   updatedAt?: Date;
 }
 
-const LogSchema = new mongoose.Schema({
-  timestamp: { type: Date, default: Date.now },
+const LogSchema = new mongoose.Schema(
+  {
+    timestamp: { type: Date, default: Date.now },
 
-  src_ip: String,
-  username: String,
+    src_ip: String,
+    username: String,
 
-  event_type: String,
-  payload: String,
-  category: String,
-  severity: String,
-  attack_type: String,
+    event_type: String,
+    payload: String,
+    category: String,
+    severity: String,
+    attack_type: String,
 
-  failed_logins: Number,
-  bytes_sent: Number,
-  scan_ports: Number,
-  threat_score: Number,
+    failed_logins: Number,
+    bytes_sent: Number,
+    scan_ports: Number,
+    threat_score: Number,
 
-  // ML-related fields
-  packets: Number,
-  connections_per_min: Number,
+    // ML-related fields
+    packets: Number,
+    connections_per_min: Number,
 
-  vpn_probability: { type: Number, default: 0 },
-  ml_predicted_attack: { type: String, default: null },
+    vpn_probability: { type: Number, default: 0 },
+    ml_predicted_attack: { type: String, default: null },
 
-  is_vpn: { type: Boolean, default: false },
-  is_ddos: { type: Boolean, default: false },
+    is_vpn: { type: Boolean, default: false },
+    is_ddos: { type: Boolean, default: false },
+  },
+  { timestamps: true }
+);
 
-}, { timestamps: true });
-
-export default mongoose.model<ILog>("Log", LogSchema);
+// Prevent model overwrite during hot reload
+export default mongoose.models.Log || mongoose.model<ILog>("Log", LogSchema);

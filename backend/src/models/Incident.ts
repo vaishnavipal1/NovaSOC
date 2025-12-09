@@ -42,4 +42,5 @@ const IncidentSchema = new Schema(
   { timestamps: true }
 );
 
-export default model("Incident", IncidentSchema);
+// Prevent model overwrite during hot reload
+export default model("Incident", IncidentSchema) || model("Incident");

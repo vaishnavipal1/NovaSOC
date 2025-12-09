@@ -41,7 +41,6 @@ router.get("/", async (req, res) => {
   }
 });
 
-
 /* 2️⃣ UPDATE incident (status or analyst) */
 router.patch("/:id", async (req, res) => {
   try {
@@ -68,6 +67,5 @@ router.patch("/:id", async (req, res) => {
     return res.status(500).json({ error: "Failed to update incident" });
   }
 });
-
 
 export default router;

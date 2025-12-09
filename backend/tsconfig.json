@@ -12,5 +12,9 @@
     "outDir": "dist",
     "resolveJsonModule": true
   },
+  "ts-node": {
+    "esm": true,
+    "experimentalEsm": true
+  },
   "include": ["**/*.ts"]
 }
