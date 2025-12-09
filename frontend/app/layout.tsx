@@ -7,16 +7,14 @@ export const metadata = {
   description: "Cybersecurity SOC Dashboard",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en">
-      <body className="bg-black text-white">
-        <Navbar />
-        <div className="pt-24"> {/* Push content below navbar */}
-          {children}
-        </div>
-        <Footer />
-      </body>
+      <body className="bg-black text-white">{children}</body>
     </html>
   );
 }

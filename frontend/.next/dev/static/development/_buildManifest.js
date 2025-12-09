@@ -1,10 +1,18 @@
 self.__BUILD_MANIFEST = {
+  "/_error": [
+    "static/chunks/pages/_error.js"
+  ],
   "__rewrites": {
     "afterFiles": [],
     "beforeFiles": [],
     "fallback": []
   },
   "sortedPages": [
+    "/AdminPage",
+    "/IncidentsPage",
+    "/LoginPage",
+    "/LogsPage",
+    "/ThreatMapPage",
     "/_app",
     "/_error"
   ]
