@@ -2,12 +2,12 @@
 
 import { Router } from "express";
 import Incident from "../models/Incident.ts";
+import BlockedIP from "../models/BlockedIP.ts";
 import { getIo } from "../sockets/socket.ts";
 
 const router = Router();
 
 /* 1️⃣ GET incidents (with limit support) */
-import BlockedIP from "../models/BlockedIP";
 
 router.get("/", async (req, res) => {
   try {

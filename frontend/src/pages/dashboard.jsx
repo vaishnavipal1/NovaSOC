@@ -31,77 +31,137 @@ export default function Dashboard() {
     openIncidents: 0,
     blockedThreats: 0,
   });
+  const [trendData, setTrendData] = useState([]);
+  const [severityData, setSeverityData] = useState([]);
+  const [topIPs, setTopIPs] = useState([]);
+  const [highRiskIPs, setHighRiskIPs] = useState([]);
+  const [threatFeed, setThreatFeed] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchStats = async () => {
+    const fetchAllData = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await fetch(
-          "http://localhost:4000/api/analytics/summary",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        if (response.ok) {
-          const data = await response.json();
-          setStats({
-            alerts: data.stats?.active || 0,
-            openIncidents: data.stats?.open || 0,
-            blockedThreats: data.stats?.blocked || 0,
-          });
-        }
+        const headers = {
+          Authorization: `Bearer ${token}`,
+        };
+
+        // Fetch all data in parallel
+        const [summaryRes, trendRes, severityRes, topIPsRes, highRiskRes, incidentsRes] = await Promise.all([
+          fetch("http://localhost:4000/api/analytics/summary", { headers }),
+          fetch("http://localhost:4000/api/analytics/trend-multi", { headers }),
+          fetch("http://localhost:4000/api/analytics/severity", { headers }),
+          fetch("http://localhost:4000/api/analytics/top-ips", { headers }),
+          fetch("http://localhost:4000/api/analytics/high-risk", { headers }),
+          fetch("http://localhost:4000/api/incidents?limit=5", { headers }),
+        ]);
+
+        const summaryData = await summaryRes.json();
+        const trendDataRes = await trendRes.json();
+        const severityDataRes = await severityRes.json();
+        const topIPsData = await topIPsRes.json();
+        const highRiskData = await highRiskRes.json();
+        const incidentsData = await incidentsRes.json();
+
+        setStats({
+          alerts: summaryData.stats?.active || 0,
+          openIncidents: summaryData.stats?.open || 0,
+          blockedThreats: summaryData.stats?.blocked || 0,
+        });
+
+        setTrendData(trendDataRes.data || []);
+        setSeverityData(severityDataRes.data || []);
+        setTopIPs(topIPsData.data || []);
+        setHighRiskIPs(highRiskData.data || []);
+        
+        // Format incidents as threat feed
+        const feed = (incidentsData.incidents || []).map(incident => ({
+          time: new Date(incident.createdAt).toLocaleTimeString(),
+          type: incident.type || "Unknown",
+          msg: `${incident.type} - Status: ${incident.status}`,
+          severity: incident.severity || "Low",
+        }));
+        setThreatFeed(feed);
       } catch (err) {
-        console.error("Error fetching stats:", err);
+        console.error("Error fetching dashboard data:", err);
       } finally {
         setLoading(false);
       }
     };
-    fetchStats();
+    fetchAllData();
   }, []);
 
   const alerts = stats.alerts;
   const openIncidents = stats.openIncidents;
   const blockedThreats = stats.blockedThreats;
 
+  // Line chart data - threat trends over time
   const lineData = {
-    labels: ["10 AM", "11 AM", "12 PM", "1 PM", "2 PM", "3 PM"],
+    labels: trendData.map((d) => d.time || "N/A").slice(0, 12),
     datasets: [
       {
-        label: "Threat Attempts",
-        data: [3, 6, 4, 8, 7, 11],
+        label: "Brute Force",
+        data: trendData.map((d) => d["Bruteforce"] || 0).slice(0, 12),
+        borderColor: "#FF6B6B",
+        backgroundColor: "rgba(255, 107, 107, 0.1)",
+        fill: true,
+        tension: 0.35,
+      },
+      {
+        label: "Malware",
+        data: trendData.map((d) => d["Malware"] || 0).slice(0, 12),
         borderColor: "#00E5FF",
-        backgroundColor: "rgba(0, 229, 255, 0.35)",
+        backgroundColor: "rgba(0, 229, 255, 0.1)",
+        fill: true,
+        tension: 0.35,
+      },
+      {
+        label: "Recon",
+        data: trendData.map((d) => d["Recon"] || 0).slice(0, 12),
+        borderColor: "#FFD93D",
+        backgroundColor: "rgba(255, 217, 61, 0.1)",
         fill: true,
         tension: 0.35,
       },
     ],
   };
 
+  // Doughnut chart - severity distribution
   const categoryData = {
-    labels: ["Brute Force", "Malware", "Port Scan", "SQL Injection"],
+    labels: severityData.map((d) => d.name || "Unknown"),
     datasets: [
       {
-        data: [35, 20, 25, 20],
-        backgroundColor: ["#00E5FF", "#36A2EB", "#FF4B4B", "#FFD93D"],
+        data: severityData.map((d) => d.value || 0),
+        backgroundColor: severityData.map((d) => {
+          const name = d.name?.toLowerCase() || "";
+          if (name.includes("high")) return "#FF4B4B";
+          if (name.includes("medium")) return "#FFD93D";
+          return "#36A2EB";
+        }),
         hoverOffset: 7,
       },
     ],
   };
 
+  // Radar chart - incident categories
   const radarData = {
-    labels: ["Brute Force", "Malware", "Port Scan", "SQLi", "XSS"],
+    labels: ["Brute Force", "Malware", "Port Scan", "SQL Injection", "XSS", "DDoS"],
     datasets: [
       {
-        label: "High Severity",
-        data: [8, 5, 7, 3, 4],
-        backgroundColor: "rgba(255, 75, 75, 0.25)",
-        borderColor: "#FF4B4B",
+        label: "Incident Categories",
+        data: [
+          (severityData.find((d) => d.name?.includes("Brute")) || {}).value || 0,
+          (severityData.find((d) => d.name?.includes("Malware")) || {}).value || 0,
+          (severityData.find((d) => d.name?.includes("Scan")) || {}).value || 0,
+          (severityData.find((d) => d.name?.includes("SQL")) || {}).value || 0,
+          (severityData.find((d) => d.name?.includes("XSS")) || {}).value || 0,
+          (severityData.find((d) => d.name?.includes("DDoS")) || {}).value || 0,
+        ],
+        backgroundColor: "rgba(0, 212, 255, 0.25)",
+        borderColor: "#00D4FF",
         borderWidth: 2.2,
         pointRadius: 4,
-        pointBackgroundColor: "#FF4B4B",
+        pointBackgroundColor: "#00D4FF",
         pointBorderColor: "#ffffff",
         pointBorderWidth: 1.5,
       },
@@ -114,38 +174,25 @@ export default function Dashboard() {
     Low: "bg-green-500/20 text-green-300 border border-green-600",
   }[s]);
 
-  const topIPs = [
-    { ip: "45.66.90.12", count: 10, country: "US" },
-    { ip: "103.22.44.19", count: 7, country: "IN" },
-    { ip: "152.32.76.98", count: 5, country: "RU" },
-  ];
+  // Top attacking IPs from backend data
+  const topIPsList = topIPs.slice(0, 5).map((ip) => ({
+    ip: ip._id || "N/A",
+    count: ip.count || 0,
+    severity:
+      ip.count > 100 ? "High" : ip.count > 50 ? "Medium" : "Low",
+    country: "Unknown",
+  }));
 
-  const threatFeed = [
-    {
-      time: "14:32",
-      type: "SQL Injection",
-      msg: "Blocked injection attempt on /login",
-      severity: "High",
-    },
-    {
-      time: "14:21",
-      type: "Brute Force",
-      msg: "Multiple failed logins from 103.22.44.19",
-      severity: "Medium",
-    },
-    {
-      time: "14:10",
-      type: "Port Scan",
-      msg: "Port scan detected against web server",
-      severity: "Low",
-    },
-    {
-      time: "13:55",
-      type: "Malware",
-      msg: "Suspicious file quarantined on host-09",
-      severity: "High",
-    },
-  ];
+  // Threat feed from recent incidents
+  const threatFeedList = threatFeed.slice(0, 4).map((incident) => ({
+    time: new Date(incident.timestamp).toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
+    type: incident.incident_type || "Unknown",
+    msg: `${incident.incident_type || "Incident"} from ${incident.source_ip || "Unknown IP"}`,
+    severity: incident.severity || "Medium",
+  }));
 
   return (
     <div className="bg-[#000814] min-h-screen text-white p-6 md:p-8 relative overflow-hidden">
@@ -256,19 +303,26 @@ export default function Dashboard() {
         <div className="bg-[#0A1A2F] border border-red-600 rounded-xl p-5 shadow-lg">
           <p className="text-red-300 mb-3">🚨 Live Threat Feed</p>
           <div className="overflow-y-auto h-56 space-y-3 pr-2">
-            {threatFeed.map((t, i) => (
-              <div key={i} className="border-b border-red-900/40 pb-2">
-                <p className="text-sm font-semibold">{t.type}</p>
-                <p className="text-xs text-gray-300">{t.msg}</p>
-                <span
-                  className={`text-[10px] mt-1 inline-block px-2 py-[1px] rounded-md ${severityBadge(
-                    t.severity
-                  )}`}
-                >
-                  {t.severity}
-                </span>
-              </div>
-            ))}
+            {threatFeedList.length > 0 ? (
+              threatFeedList.map((t, i) => (
+                <div key={i} className="border-b border-red-900/40 pb-2">
+                  <p className="text-sm font-semibold">{t.type}</p>
+                  <p className="text-xs text-gray-300">{t.msg}</p>
+                  <div className="flex justify-between items-center mt-1">
+                    <span
+                      className={`text-[10px] px-2 py-[1px] rounded-md ${severityBadge(
+                        t.severity
+                      )}`}
+                    >
+                      {t.severity}
+                    </span>
+                    <span className="text-[10px] text-gray-400">{t.time}</span>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="text-gray-400 text-sm">No recent threats detected</p>
+            )}
           </div>
         </div>
 
@@ -280,20 +334,32 @@ export default function Dashboard() {
               <tr>
                 <th className="p-2">IP</th>
                 <th className="p-2">Attempts</th>
-                <th className="p-2">Region</th>
+                <th className="p-2">Severity</th>
               </tr>
             </thead>
             <tbody>
-              {topIPs.map((i) => (
-                <tr
-                  key={i.ip}
-                  className="border-b border-cyan-900 hover:bg-[#112233] transition"
-                >
-                  <td className="p-2">{i.ip}</td>
-                  <td className="p-2 text-yellow-300">{i.count}</td>
-                  <td className="p-2">{i.country}</td>
+              {topIPsList.length > 0 ? (
+                topIPsList.map((i) => (
+                  <tr
+                    key={i.ip}
+                    className="border-b border-cyan-900 hover:bg-[#112233] transition"
+                  >
+                    <td className="p-2 font-mono text-xs">{i.ip}</td>
+                    <td className="p-2 text-yellow-300 font-semibold">{i.count}</td>
+                    <td className="p-2">
+                      <span className={`text-xs px-2 py-1 rounded ${severityBadge(i.severity)}`}>
+                        {i.severity}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="3" className="p-2 text-gray-400 text-center">
+                    No IP data available
+                  </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>
